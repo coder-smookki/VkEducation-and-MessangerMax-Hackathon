@@ -39,7 +39,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       <div
         className="absolute inset-0 -z-10 pointer-events-none"
         style={{
-          
+          background: `radial-gradient(circle closest-side at 50% 38%, ${t.haloFrom} 0%, ${t.haloTo} 100%)`
         
         }}
       />

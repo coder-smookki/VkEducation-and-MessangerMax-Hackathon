@@ -1,3 +1,4 @@
+// theme.ts
 import type { ImageKey } from './images';
 
 export type CardTheme = {
@@ -11,26 +12,27 @@ export type CardTheme = {
 export const themeByImage: Record<ImageKey, CardTheme> = {
   programmer: {
     haloFrom: '#E3E0FF', haloTo: '#FFFFFF',
-    btnFrom: '#6C63FF',  btnTo: '#7B61FF',
+    btnFrom: '#6C63FF', btnTo: '#7B61FF',
     btnText: 'white',
   },
   business: {
-    haloFrom: 'rgba(236, 160, 98, 1)', haloTo: '#e24e09ff',
-    btnFrom: 'rgba(145, 145, 145, 1)',  btnTo: '#5f5b5bff',
+    haloFrom: '#F0F0F0', haloTo: '#FFFFFF', // ИЗМЕНИЛ на белые тона
+    btnFrom: '#808080', btnTo: '#404040',   // Серые кнопки вместо оранжевых
     btnText: 'white',
   },
   fil: {
     haloFrom: '#DFF6FF', haloTo: '#FFFFFF',
-    btnFrom: '#22D3EE',  btnTo: '#3B82F6',
+    btnFrom: '#22D3EE', btnTo: '#3B82F6',
     btnText: 'white',
   },
   foot: {
-     haloFrom: '#DFF6FF', haloTo: '#FFFFFF',
-    btnFrom: '#22D3EE',  btnTo: '#3B82F6',
+    haloFrom: '#DFF6FF', haloTo: '#FFFFFF',
+    btnFrom: '#22D3EE', btnTo: '#3B82F6',
     btnText: 'white',
-  },  businessAlt: {
-     haloFrom: '#DFF6FF', haloTo: '#FFFFFF',
-    btnFrom: '#22D3EE',  btnTo: '#3B82F6',
+  }, 
+  businessAlt: {
+    haloFrom: '#F0F0F0', haloTo: '#FFFFFF', // Тоже белые тона
+    btnFrom: '#808080', btnTo: '#404040',
     btnText: 'white',
   }
 };

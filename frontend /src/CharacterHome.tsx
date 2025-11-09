@@ -25,6 +25,12 @@ export default function CharacterHome() {
   const baseSrc = imageMap[c.image] ?? fallbackImage;
   const src = c.id === 'business' ? (imageMap['businessAlt'] ?? baseSrc) : baseSrc;
 
+  // Заглушка для XP - в реальном приложении получайте из состояния
+  const currentXP = 750;
+  const maxXP = 1000;
+  const xpPercentage = (currentXP / maxXP) * 100;
+  const level = Math.floor(currentXP / 100) + 1;
+
   return (
     <div className="min-h-screen p-4 mt-[120px]">
       <div className="mb-4">
@@ -58,11 +64,41 @@ export default function CharacterHome() {
         {/* ТЕКСТ ПОД КАРТИНКОЙ */}
         <div className="relative z-10 mt-6 text-center px-4">
           {c.id === 'business' ? (
-            <div className="text-2xl font-bold text-gray-900">Уровень 1</div>
+            <>
+              <div className="text-2xl font-bold text-gray-900 mb-4">Уровень {level}</div>
+              
+              {/* ПРОГРЕСС-БАР XP */}
+              <div className="w-full max-w-xs mx-auto mb-2">
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Прогресс</span>
+                  <span>{currentXP}/{maxXP} XP</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${xpPercentage}%` }}
+                  />
+                </div>
+              </div>
+            </>
           ) : (
             <>
               <h1 className="text-2xl font-bold text-gray-900">{c.name}</h1>
               <p className="mt-3 text-base text-gray-700 leading-relaxed max-w-md">{c.story}</p>
+              
+              {/* ПРОГРЕСС-БАР ДЛЯ ВСЕХ ПЕРСОНАЖЕЙ */}
+              <div className="w-full max-w-xs mx-auto mt-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Уровень {level}</span>
+                  <span>{currentXP}/{maxXP} XP</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${xpPercentage}%` }}
+                  />
+                </div>
+              </div>
             </>
           )}
         </div>
