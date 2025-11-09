@@ -1,21 +1,40 @@
-// src/CharacterHome.tsx
 import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { characters } from './characters';
 import { imageMap, fallbackImage } from './images';
 import { themeByImage } from './theme';
 
+const XP_PER_LEVEL = 100; // сколько XP нужно на уровень
+
+// ключи локального хранилища
+const xpKey = (id: string) => `lvlup_xp_${id}`;
+
 export default function CharacterHome() {
   const { id } = useParams();
   const c = characters.find(x => x.id === id);
+
+  // статы из localStorage
+  const [xp, setXp] = useState(0);
+
+  useEffect(() => {
+    if (!c) return;
+    const raw = localStorage.getItem(xpKey(c.id));
+    setXp(raw ? Math.max(0, Number(raw)) : 0);
+  }, [c?.id]);
+
+  const { level, progress, pct } = useMemo(() => {
+    const lvl = Math.floor(xp / XP_PER_LEVEL) + 1;
+    const prog = xp % XP_PER_LEVEL;
+    const percent = Math.round((prog / XP_PER_LEVEL) * 100);
+    return { level: lvl, progress: prog, pct: percent };
+  }, [xp]);
 
   if (!c) {
     return (
       <div className="min-h-screen p-6 grid place-items-center">
         <div className="text-center">
           <h1 className="mb-3 text-2xl font-bold">Персонаж не найден</h1>
-          <Link to="/choiceperson" className="text-blue-600 hover:underline">
-            Назад к выбору
-          </Link>
+          <Link to="/choiceperson" className="text-blue-600 hover:underline">Назад к выбору</Link>
         </div>
       </div>
     );
@@ -23,13 +42,12 @@ export default function CharacterHome() {
 
   const t = themeByImage[c.image];
   const baseSrc = imageMap[c.image] ?? fallbackImage;
+  // если у тебя есть альтернативная картинка для бизнес — подставится; иначе вернётся baseSrc
   const src = c.id === 'business' ? (imageMap['businessAlt'] ?? baseSrc) : baseSrc;
 
-  // Заглушка для XP - в реальном приложении получайте из состояния
-  const currentXP = 750;
-  const maxXP = 1000;
-  const xpPercentage = (currentXP / maxXP) * 100;
-  const level = Math.floor(currentXP / 100) + 1;
+  // для «Бизнес» — свечение максимально белое; для остальных — из темы
+  const layer2 = c.id === 'business' ? 'rgba(255,255,255,0.92)' : t.haloTo;
+  const layer3 = c.id === 'business' ? 'rgba(255,255,255,0.85)' : t.haloFrom;
 
   return (
     <div className="min-h-screen p-4 mt-[120px]">
@@ -37,131 +55,76 @@ export default function CharacterHome() {
         <Link to="/choiceperson" className="text-sm text-gray-600 hover:underline">‹ Назад</Link>
       </div>
 
-      {/* ГЕРО-БЛОК С БОЛЬШИМ СВЕЧЕНИЕМ */}
+      {/* Геро-блок со свечением строго внутри контейнера */}
       <div
-        className="
-          relative mb-8 grid place-items-center
-          h-[540px] rounded-3xl overflow-hidden isolate
-          px-4 pt-8 pb-6
-        "
+        className="relative mb-8 grid place-items-center h-[540px] rounded-3xl overflow-hidden isolate px-4 pt-8 pb-6"
         style={{
-          // три рад.градиента: мощный белый центр + насыщённый цвет + нежный ореол
           background: `
             radial-gradient(closest-side at 50% 40%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0) 58%),
-            radial-gradient(closest-side at 50% 42%, ${t.haloTo} 0%, rgba(255,255,255,0) 75%),
-            radial-gradient(closest-side at 50% 45%, ${t.haloFrom} 0%, rgba(255,255,255,0) 95%)
+            radial-gradient(closest-side at 50% 42%, ${layer2} 0%, rgba(255,255,255,0) 75%),
+            radial-gradient(closest-side at 50% 45%, ${layer3} 0%, rgba(255,255,255,0) 95%)
           `
         }}
       >
+        <img src={src} alt={c.name} className="relative z-10 w-80 h-80 object-contain" />
 
-        {/* КАРТИНКА ПЕРСОНАЖА */}
-        <img
-          src={src}
-          alt={c.name}
-          className="relative z-10 w-80 h-80 object-contain"
-        />
+        {/* Уровень + прогресс XP — теперь у всех персонажей */}
+        <div className="relative z-10 mt-6 text-center px-4 w-full max-w-md">
+          <div className="text-2xl font-bold text-gray-900">Уровень {level}</div>
 
-        {/* ТЕКСТ ПОД КАРТИНКОЙ */}
-        <div className="relative z-10 mt-6 text-center px-4">
-          {c.id === 'business' ? (
-            <>
-              <div className="text-2xl font-bold text-gray-900 mb-4">Уровень {level}</div>
-              
-              {/* ПРОГРЕСС-БАР XP */}
-              <div className="w-full max-w-xs mx-auto mb-2">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Прогресс</span>
-                  <span>{currentXP}/{maxXP} XP</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${xpPercentage}%` }}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <h1 className="text-2xl font-bold text-gray-900">{c.name}</h1>
-              <p className="mt-3 text-base text-gray-700 leading-relaxed max-w-md">{c.story}</p>
-              
-              {/* ПРОГРЕСС-БАР ДЛЯ ВСЕХ ПЕРСОНАЖЕЙ */}
-              <div className="w-full max-w-xs mx-auto mt-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Уровень {level}</span>
-                  <span>{currentXP}/{maxXP} XP</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${xpPercentage}%` }}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+          <div className="mt-3">
+            <div className="h-2.5 w-full rounded-full bg-gray-200/80">
+              <div
+                className="h-2.5 rounded-full transition-all"
+                style={{
+                  width: `${pct}%`,
+                  background: `linear-gradient(90deg, ${t.btnFrom}, ${t.btnTo})`
+                }}
+              />
+            </div>
+            <div className="mt-1 text-xs text-gray-700">{progress} XP / {XP_PER_LEVEL} XP</div>
+          </div>
         </div>
       </div>
 
-      {/* КНОПКИ - 3 сверху, 2 снизу */}
+      {/* Кнопки (оставил как у тебя) */}
       <div className="flex flex-col items-center gap-6 max-w-md mx-auto">
-        {/* ВЕРХНЯЯ СТРОКА - 3 КНОПКИ */}
         <div className="flex gap-4 justify-center w-full">
           <Link
             to={`/character/${c.id}/tasks`}
             className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`,
-              boxShadow: `0 8px 20px ${t.btnFrom}80`
-            }}
+            style={{ background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`, boxShadow: `0 8px 20px ${t.btnFrom}80` }}
           >
             Задачи
           </Link>
-
           <Link
             to={`/character/${c.id}/stats`}
             className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
-              boxShadow: `0 8px 20px ${t.btnTo}80`
-            }}
+            style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Цели
           </Link>
-
           <Link
             to={`/character/${c.id}/stats`}
             className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`,
-              boxShadow: `0 8px 20px ${t.btnFrom}80`
-            }}
+            style={{ background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`, boxShadow: `0 8px 20px ${t.btnFrom}80` }}
           >
             Статистика
           </Link>
         </div>
 
-        {/* НИЖНЯЯ СТРОКА - 2 КНОПКИ */}
         <div className="flex gap-4 justify-center w-full">
           <Link
-            to={`/character/${c.id}/stats`}
+            to={`/character/${c.id}/timer`}
             className="flex-1 max-w-[160px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
-              boxShadow: `0 8px 20px ${t.btnTo}80`
-            }}
+            style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Таймер
           </Link>
-
           <Link
             to={`/character/${c.id}/stats`}
             className="flex-1 max-w-[160px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
-            style={{
-              background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
-              boxShadow: `0 8px 20px ${t.btnTo}80`
-            }}
+            style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Дополнительно
           </Link>

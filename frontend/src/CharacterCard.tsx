@@ -27,7 +27,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       title={character.name}
       className={[
         'group relative w-full h-[620px] bg-transparent', 
-        'flex flex-col items-center justify-start pb-8', // добавили padding-bottom
+        'flex flex-col items-center justify-start pb-8',
         'transition-transform duration-300',
         isActive ? 'scale-100' : 'scale-[0.98] opacity-95',
         'hover:scale-105'
@@ -35,7 +35,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       role="button"
       tabIndex={0}
     >
-      {/* свечение за персонажем */}
+    
       <div
         className="absolute inset-0 -z-10 pointer-events-none"
         style={{
