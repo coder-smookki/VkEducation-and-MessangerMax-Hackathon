@@ -3,7 +3,7 @@ name: Deploy Vite React + TS App to GitHub Pages
 on:
   push:
     branches:
-      - game
+      - game  # твоя рабочая ветка
 
 jobs:
   build-and-deploy:
@@ -17,17 +17,17 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
-      # 3. Устанавливаем зависимости
+
+      # 3. Устанавливаем зависимости внутри папки frontend
       - run: npm install
-        working-directory: ./frontend
+        working-directory: frontend
 
-      # 4. Собираем проект
+      # 4. Собираем проект (TS → JS, React сборка)
       - run: npm run build
-        working-directory: ./frontend
+        working-directory: frontend
 
-      # 5. Деплоим dist
+      # 5. Деплоим dist на GitHub Pages
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/dist
+          publish_dir: frontend/dist
