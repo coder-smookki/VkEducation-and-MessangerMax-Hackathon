@@ -1,5 +1,7 @@
 import asyncio
 from maxbot import Bot, Dispatcher
+from maxbot.middleware import LoggingMiddleware, ThrottlingMiddleware
+from redis.asyncio import Redis
 
 from .middlewares.user import UserMiddleware
 from .handlers.start import create_commands_router
@@ -13,6 +15,8 @@ async def main():
 
         # Middleware — регистрация пользователей в БД
         dp.include_middleware(UserMiddleware())
+        dp.include_middleware(LoggingMiddleware())
+        dp.include_middleware(ThrottlingMiddleware(rate_limit=1.0))
 
         # Роутеры
         dp.include_router(create_commands_router())
