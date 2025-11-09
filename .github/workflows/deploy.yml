@@ -1,0 +1,31 @@
+name: Deploy Vite React + TS App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - game
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Клонируем репозиторий
+      - uses: actions/checkout@v3
+
+      # 2. Устанавливаем Node.js
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3. Устанавливаем зависимости
+      - run: npm install
+
+      # 4. Собираем проект (TS → JS, React сборка)
+      - run: npm run build
+
+      # 5. Деплоим dist на GitHub Pages через peaceiris/actions-gh-pages
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
