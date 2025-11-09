@@ -1,38 +1,58 @@
-// src/api.ts
-import { authHeaders } from './auth.ts';
+import { http, authHeaders, toForm } from './http';
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+export type Task = {
+  id: string;
+  title: string;
+  done: boolean;
+  created_at: string;
+};
 
-export type Task = { id: string; title: string; done: boolean; created_at: string };
-export type XpSummary = { totalXP: number; level: number; progress: number; goal: number; pct: number };
+export type TogglePayload = {
+  task: { id: string; done: boolean };
+  totalXP: number;
+  level: number;
+};
 
-async function j<T>(r: Response): Promise<T> {
-  if (!r.ok) {
-    const txt = await r.text().catch(() => '');
-    throw new Error(`HTTP ${r.status}: ${txt || r.statusText}`);
-  }
-  return r.json();
-}
+export type XpSummary = {
+  totalXP: number;
+  level: number;
+  progress: number;
+  goal: number;
+  pct: number;
+};
 
-export async function listTasks(characterId: string) {
-  const r = await fetch(`${API}/api/characters/${characterId}/tasks`, { headers: authHeaders() });
-  return j<Task[]>(r);
-}
-export async function createTask(characterId: string, title: string) {
-  const r = await fetch(`${API}/api/characters/${characterId}/tasks`, {
-    method: 'POST', headers: authHeaders(), body: JSON.stringify({ title })
+export async function listTasks(characterId: string): Promise<Task[]> {
+  const r = await http.get<Task[]>(`/api/characters/${characterId}/tasks`, {
+    headers: authHeaders(),
   });
-  return j<Task>(r);
+  return r.data;
 }
-export async function toggleTask(taskId: string) {
-  const r = await fetch(`${API}/api/tasks/${taskId}/toggle`, { method: 'PATCH', headers: authHeaders() });
-  return j<{ task:{id:string;done:boolean}; totalXP:number; level:number }>(r);
+
+export async function createTask(characterId: string, title: string): Promise<Task> {
+  const r = await http.post<Task>(
+    `/api/characters/${characterId}/tasks`,
+    toForm({ title }),
+    { headers: authHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
+  );
+  return r.data;
 }
-export async function deleteTask(taskId: string) {
-  const r = await fetch(`${API}/api/tasks/${taskId}`, { method: 'DELETE', headers: authHeaders() });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+export async function toggleTask(taskId: string): Promise<TogglePayload> {
+  const r = await http.patch<TogglePayload>(
+    `/api/tasks/${taskId}/toggle`,
+    toForm({}), // пустая форма
+    { headers: authHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
+  );
+  return r.data;
 }
-export async function getXp(characterId: string) {
-  const r = await fetch(`${API}/api/characters/${characterId}/xp`, { headers: authHeaders() });
-  return j<XpSummary>(r);
+
+export async function deleteTask(taskId: string): Promise<void> {
+  await http.delete(`/api/tasks/${taskId}`, { headers: authHeaders() });
+}
+
+export async function getXp(characterId: string): Promise<XpSummary> {
+  const r = await http.get<XpSummary>(`/api/characters/${characterId}/xp`, {
+    headers: authHeaders(),
+  });
+  return r.data;
 }

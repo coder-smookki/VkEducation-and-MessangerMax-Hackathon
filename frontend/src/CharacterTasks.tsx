@@ -1,17 +1,18 @@
-// src/CharacterTasks.tsx
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { themeByImage } from './theme';
 import { characters } from './characters';
 import { imageMap, fallbackImage } from './images';
-import { createTask, deleteTask, listTasks, toggleTask, type Task } from './api.ts';
+import { createTask, deleteTask, listTasks, toggleTask, type Task } from './api';
+
+type RouteParams = { id?: string };
 
 export default function CharacterTasks() {
-  const { id } = useParams();
+  const { id } = useParams<RouteParams>();
   const c = characters.find(x => x.id === id);
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState<string>('');
 
   useEffect(() => {
     if (!c) return;
@@ -22,20 +23,34 @@ export default function CharacterTasks() {
   const src = c ? (imageMap[c.image] ?? fallbackImage) : fallbackImage;
 
   const addTask = async () => {
-    if (!c || !title.trim()) return;
-    const task = await createTask(c.id, title.trim());
-    setTasks(prev => [task, ...prev]);
-    setTitle('');
+    if (!c) return;
+    const name = title.trim();
+    if (!name) return;
+    try {
+      const task = await createTask(c.id, name);
+      setTasks(prev => [task, ...prev]);
+      setTitle('');
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const onToggle = async (task: Task) => {
-    await toggleTask(task.id);
-    setTasks(prev => prev.map(it => it.id === task.id ? { ...it, done: !it.done } : it));
+    try {
+      await toggleTask(task.id);
+      setTasks(prev => prev.map(it => (it.id === task.id ? { ...it, done: !it.done } : it)));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const onDelete = async (taskId: string) => {
-    await deleteTask(taskId);
-    setTasks(prev => prev.filter(t => t.id !== taskId));
+    try {
+      await deleteTask(taskId);
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   if (!c) {
@@ -58,7 +73,6 @@ export default function CharacterTasks() {
         <h1 className="text-xl font-bold">{c.name}: Задачи</h1>
       </div>
 
-      {/* форма добавления */}
       <div className="flex gap-2 mb-4">
         <input
           value={title}
@@ -85,11 +99,18 @@ export default function CharacterTasks() {
           <li key={task.id}
               className="rounded-xl px-4 py-3 flex items-center gap-3 bg-white shadow"
               style={{ borderLeft: `6px solid ${t.btnFrom}` }}>
-            <input type="checkbox" checked={task.done} onChange={() => onToggle(task)} className="h-5 w-5 accent-current" />
+            <input
+              type="checkbox"
+              checked={task.done}
+              onChange={() => onToggle(task)}
+              className="h-5 w-5 accent-current"
+            />
             <span className={`flex-1 text-sm ${task.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
               {task.title}
             </span>
-            <button onClick={() => onDelete(task.id)} className="text-gray-400 hover:text-gray-600 text-sm">Удалить</button>
+            <button onClick={() => onDelete(task.id)} className="text-gray-400 hover:text-gray-600 text-sm">
+              Удалить
+            </button>
           </li>
         ))}
       </ul>
