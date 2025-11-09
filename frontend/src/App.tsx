@@ -4,6 +4,7 @@ import CharacterSelect from './CharacterSelect';
 import CharacterHome from './CharacterHome';
 import CharacterTasks from './CharacterTasks';
 import CharacterStats from './CharacterTasks';
+import CharacterTimer from './CharacterTimer';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/character/:id" element={<CharacterHome />} />
       <Route path="/character/:id/tasks" element={<CharacterTasks />} />
       <Route path="/character/:id/stats" element={<CharacterStats />} />
+      <Route path="/character/:id/timer" element={<CharacterTimer />} />
     </Routes>
   );
 }
