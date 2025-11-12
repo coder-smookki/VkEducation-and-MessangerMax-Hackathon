@@ -20,7 +20,7 @@ export default function CharacterSelect() {
 
   return (
     <div className="p-4">
-      <h1 className="mb-2 text-center text-[22px] tracking-[0.08em] font-semibold text-gray-900 uppercase">
+      <h1 className="mb-1 text-center text-[18px] tracking-[0.08em] font-semibold text-gray-900 uppercase">
         Выбор персонажа
       </h1>
 

@@ -26,7 +26,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       onClick={onSelect}
       title={character.name}
       className={[
-        'group relative w-full h-[630px] bg-transparent', 
+        'group relative w-full h-[590px] bg-transparent', 
         'flex flex-col items-center justify-start pb-3',
         'transition-transform duration-300',
         isActive ? 'scale-100' : 'scale-[0.98] opacity-95',
@@ -56,7 +56,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
 
       {/* имя + история */}
       <div className="text-center">
-        <div className="text-[17px] text-center font-semibold text-gray-900 mb-[4px]">{character.name}</div>
+        <div className="text-[17px] text-center font-semibold text-gray-900 mb-[">{character.name}</div>
         <p className="text-gray-700 text-[12px] ">{character.story}</p>
       </div>
 
@@ -67,7 +67,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
           className={`rounded-full px-6 py-3 font-semibold shadow-lg active:scale-95 transition ${btnText}`}
           style={{ background: btnBg }}
         >
-          выбрать
+          Выбрать
         </button>
       </div>
     </div>
