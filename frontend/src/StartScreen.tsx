@@ -28,7 +28,7 @@ export default function StartScreen() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFFFF] items-center justify-center p-4">
+    <div className="min-h-screen text-gray-900  flex flex-col bg-[#FFFFFF] items-center justify-center p-4">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-9">Level Up Life</h1>
         <button
