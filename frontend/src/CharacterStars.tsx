@@ -15,7 +15,7 @@ export default function CharacterStats() {
   if (!c) {
     return (
       <div className="p-4">
-        <Link to="/choiceperson" className="text-blue-600 hover:underline">Назад</Link>
+        <Link to="/choiceperson" className="text-blue-600 hover:underline text-[16px]">Назад</Link>
         <div className="mt-4">Персонаж не найден</div>
       </div>
     );

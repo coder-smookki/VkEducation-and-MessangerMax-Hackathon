@@ -50,14 +50,15 @@ export default function CharacterHome() {
   const layer3 = c.id === 'business' ? 'rgba(255,255,255,0.85)' : t.haloFrom;
 
   return (
-    <div className="min-h-screen p-4 mt-[120px]">
-      <div className="mb-4">
+    <div className='flex items-center'>
+    <div className="min-h-screen p-4">
+      <div className="mb-3">
         <Link to="/choiceperson" className="text-sm text-gray-600 hover:underline">‹ Назад</Link>
       </div>
 
       {/* Геро-блок со свечением строго внутри контейнера */}
       <div
-        className="relative mb-8 grid place-items-center h-[540px] rounded-3xl overflow-hidden isolate px-4 pt-8 pb-6"
+        className="relative mb-3 grid place-items-center h-[540px] rounded-3xl overflow-hidden isolate px-4"
         style={{
           background: `
             radial-gradient(closest-side at 50% 40%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0) 58%),
@@ -69,7 +70,7 @@ export default function CharacterHome() {
         <img src={src} alt={c.name} className="relative z-10 w-80 h-80 object-contain" />
 
         {/* Уровень + прогресс XP — теперь у всех персонажей */}
-        <div className="relative z-10 mt-6 text-center px-4 w-full max-w-md">
+        <div className="relative z-10 mt-2 text-center px-4 w-full max-w-md">
           <div className="text-2xl font-bold text-gray-900">Уровень {level}</div>
 
           <div className="mt-3">
@@ -88,25 +89,25 @@ export default function CharacterHome() {
       </div>
 
       {/* Кнопки (оставил как у тебя) */}
-      <div className="flex flex-col items-center gap-6 max-w-md mx-auto">
+      <div className="flex flex-col items-center gap-5 max-w-md mx-auto">
         <div className="flex gap-4 justify-center w-full">
           <Link
             to={`/character/${c.id}/tasks`}
-            className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
+            className="flex-1 max-w-[130px] rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`, boxShadow: `0 8px 20px ${t.btnFrom}80` }}
           >
             Задачи
           </Link>
           <Link
             to={`/character/${c.id}/stats`}
-            className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
+            className="flex-1 max-w-[130px] rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Цели
           </Link>
           <Link
             to={`/character/${c.id}/stats`}
-            className="flex-1 max-w-[140px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
+            className="flex-1 max-w-[130px] rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${t.btnFrom}, ${t.btnTo})`, boxShadow: `0 8px 20px ${t.btnFrom}80` }}
           >
             Статистика
@@ -116,20 +117,21 @@ export default function CharacterHome() {
         <div className="flex gap-4 justify-center w-full">
           <Link
             to={`/character/${c.id}/timer`}
-            className="flex-1 max-w-[160px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
+            className="flex-1 max-w-[140px] rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center "
             style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Таймер
           </Link>
           <Link
             to={`/character/${c.id}/stats`}
-            className="flex-1 max-w-[160px] rounded-[50px] h-14 shadow-lg active:scale-95 transition text-white flex items-center justify-center font-semibold"
+            className="flex-1 max-w-[150px] rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`, boxShadow: `0 8px 20px ${t.btnTo}80` }}
           >
             Дополнительно
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }

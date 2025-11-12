@@ -26,8 +26,8 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       onClick={onSelect}
       title={character.name}
       className={[
-        'group relative w-full h-[620px] bg-transparent', 
-        'flex flex-col items-center justify-start pb-8',
+        'group relative w-full h-[630px] bg-transparent', 
+        'flex flex-col items-center justify-start pb-3',
         'transition-transform duration-300',
         isActive ? 'scale-100' : 'scale-[0.98] opacity-95',
         'hover:scale-105'
@@ -55,9 +55,9 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
       </div>
 
       {/* имя + история */}
-      <div className="mt-3 text-center px-4">
-        <div className="text-[17px] font-semibold text-gray-900">{character.name}</div>
-        <p className="mt-2 text-sm text-gray-700 leading-snug">{character.story}</p>
+      <div className="text-center">
+        <div className="text-[17px] text-center font-semibold text-gray-900 mb-[4px]">{character.name}</div>
+        <p className="text-gray-700 text-[12px] ">{character.story}</p>
       </div>
 
       {/* кнопка выбрать (свои цвета) */}
