@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { startGame } from './http';
+import { startGame, getUserIdFromMAX } from './http';
 
 export default function StartScreen() {
   const [loading, setLoading] = useState(false);
@@ -8,13 +8,16 @@ export default function StartScreen() {
 
   const handleStartGame = async () => {
     setLoading(true);
-
     try {
-      const userId = '123'; // здесь можно получить реальный user_id после авторизации
+      const userId = getUserIdFromMAX(); 
+      if (!userId) {
+        alert('Не удалось получить user_id из MAX');
+        return;
+      }
+
       const result = await startGame(userId);
-      
       console.log('Ответ от сервера:', result);
-      
+
       if (result.success) {
         navigate('/choiceperson');
       } else {
@@ -28,7 +31,7 @@ export default function StartScreen() {
   };
 
   return (
-    <div className="min-h-screen text-gray-900  flex flex-col bg-[#FFFFFF] items-center justify-center p-4">
+    <div className="min-h-screen text-gray-900 flex flex-col bg-[#FFFFFF] items-center justify-center p-4">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-9">Level Up Life</h1>
         <button

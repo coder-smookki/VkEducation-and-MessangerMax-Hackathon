@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000',    
+  baseURL: 'http://127.0.0.1:5000', 
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -13,10 +13,10 @@ function readInitDataString(): string {
   return q ?? '';
 }
 
-
-function getUserIdFromWebApp(): string | null {
+export function getUserIdFromMAX(): string | null {
   const wa: any = (window as any)?.WebApp;
 
+ 
   const idUnsafe = wa?.initDataUnsafe?.user?.id;
   if (idUnsafe != null) return String(idUnsafe);
 
@@ -30,15 +30,17 @@ function getUserIdFromWebApp(): string | null {
   const m = /"id"\s*:\s*(\d+)/.exec(userParam);
   if (m) return m[1];
 
+ 
   try {
     const obj = JSON.parse(userParam);
-    if (obj && obj.id != null) return String(obj.id);
-  } catch {}
-  return null;
+    return obj?.id != null ? String(obj.id) : null;
+  } catch {
+    return null;
+  }
 }
 
 export const startGame = async (userId?: string) => {
-  const uid = userId ?? getUserIdFromWebApp();
+  const uid = userId ?? getUserIdFromMAX();
   if (!uid) throw new Error('user_id не найден (WebApp.initData/initDataUnsafe пуст)');
 
   const response = await api.post('/api/start-game', { user_id: uid });
