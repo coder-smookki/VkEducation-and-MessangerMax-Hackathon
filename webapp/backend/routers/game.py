@@ -1,14 +1,27 @@
-from fastapi import APIRouter
+# webapp/backend/routers/start_game.py
+from fastapi import APIRouter, Depends, Form, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.session import database_init
+from database.repositories.user import UserAlchemyRepo
+from bot.core.models.user import User
 
-from webapp.backend.models.schemas import User, StartRes
+router = APIRouter(prefix="/api", tags=["start-game"])
 
-router = APIRouter(prefix="/api", tags=["game"])
+@router.post("/start-game")
+async def start_game(
+    user_id: str = Form(...),
+    session: AsyncSession = Depends(database_init)
+):
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id пуст")
 
-@router.post("/start-game", response_model=StartRes)
-async def start_game(user: User):
-    # тут можно создать игрока в БД, выдать дефолтные данные и т.п.
-    # для dev принимаем любого user_id
-    print("Получен user_id:", user.user_id)
-    if not user.user_id:
-        return StartRes(success=False, message="user_id пуст")
-    return StartRes(success=True, message="Пользователь зарегистрирован")
+    repo = UserAlchemyRepo(session)
+
+    existing = await repo.get(int(user_id))
+    if existing:
+        return {"success": True, "message": "Пользователь уже существует", "user_id": user_id}
+
+    new_user = User(id=None, user_id=int(user_id), username=None)
+    await repo.create(new_user)
+
+    return {"success": True, "message": "Пользователь создан", "user_id": user_id}

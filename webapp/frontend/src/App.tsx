@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import maxReady from './maxReady';
 import CharacterTimer from './CharacterTimer';
 import CharacterGoals from './CharacterGoal';
+  
 
 export default function App() {
   useEffect(() => {
