@@ -5,7 +5,7 @@ from database.session import database_init
 from database.repositories.user import UserAlchemyRepo
 from bot.core.models.user import User
 
-router = APIRouter(prefix="/api", tags=["start-game"])
+router = APIRouter(tags=["start-game"])
 
 @router.post("/start-game")
 async def start_game(

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from webapp.backend.models.schemas import VerifyReq, VerifyRes
 from webapp.backend.security import SecurityService
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 @router.post("/verify", response_model=VerifyRes)
 def verify_initdata(body: VerifyReq):
