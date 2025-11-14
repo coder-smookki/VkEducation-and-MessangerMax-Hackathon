@@ -12,6 +12,7 @@ services:
         environment:
             PYTHONUNBUFFERED: 1
             PYTHONDONTWRITEBYTECODE: 1
+            PYTHONPATH: /app:/app/bot
         depends_on:
             database:
                 condition: service_healthy

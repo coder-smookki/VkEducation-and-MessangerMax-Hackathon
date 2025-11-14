@@ -22,6 +22,7 @@ export default function App() {
       <Route path="/character/:id" element={<CharacterHome />} />
       <Route path="/character/:id/tasks" element={<CharacterTasks />} />
       <Route path="/character/:id/timer" element={<CharacterTimer />} />
+       <Route path="/character/:id/goals" element={<CharacterGoals />} />
       <Route path="/character/:id/goals" element={<CharacterGoals />} />
  <Route path="*" element={<Navigate to="/" replace />} />    </Routes>
   );

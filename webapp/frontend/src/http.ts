@@ -1,72 +1,60 @@
 // src/http.ts
 import axios from 'axios';
 
+/* ---------------------------------------------------------
+ *  Axios-клиент: базовый URL УЖЕ с /api
+ * --------------------------------------------------------- */
 const api = axios.create({
-  baseURL: '/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: 'http://127.0.0.1:5000/api',
 });
 
-// =====================
-// SDK: user_id
-// =====================
+/* ---------------------------------------------------------
+ *  Telegram WebApp: получить user_id
+ *  (возвращает string | undefined — это важное изменение)
+ * --------------------------------------------------------- */
 function readInitDataString(): string {
-  const wa: any = (window as any)?.WebApp;
-  if (wa && typeof wa.initData === 'string' && wa.initData.length) return wa.initData;
-  const q = new URLSearchParams(location.search).get('init_data');
-  return q ?? '';
+  const wa: any = (window as any).WebApp;
+  if (wa?.initData) return wa.initData as string;
+  return new URLSearchParams(location.search).get('init_data') ?? '';
 }
 
-export function getUserIdFromMAX(): string | null {
-  const wa: any = (window as any)?.WebApp;
+export function getUserIdFromMAX(): string | undefined {
+  const wa: any = (window as any).WebApp;
+
+  // 1) простой путь
   const idUnsafe = wa?.initDataUnsafe?.user?.id;
   if (idUnsafe != null) return String(idUnsafe);
 
-  const initData = readInitDataString();
-  if (!initData) return null;
+  // 2) парсим initData
+  const raw = readInitDataString();
+  if (!raw) return undefined;
 
-  const params = new URLSearchParams(initData);
-  const userParam = params.get('user');
-  if (!userParam) return null;
+  const userStr = new URLSearchParams(raw).get('user');
+  if (!userStr) return undefined;
 
-  const m = /"id"\s*:\s*(\d+)/.exec(userParam);
+  const m = /"id"\s*:\s*(\d+)/.exec(userStr);
   if (m) return m[1];
 
   try {
-    const obj = JSON.parse(userParam);
-    return obj?.id != null ? String(obj.id) : null;
+    const obj = JSON.parse(userStr);
+    return obj?.id != null ? String(obj.id) : undefined;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-// =====================
-// Типы
-// =====================
-export type Goal = {
-  id: string;
-  title: string;
-  done: boolean;
-  createdAt: number;
-};
+/* ---------------------------------------------------------
+ *  Типы
+ * --------------------------------------------------------- */
+export type Goal  = { id: string; title: string; done: boolean; createdAt: number };
+export type Task  = { id: string; title: string; completed: boolean; dueAt?: number; xp?: number };
+export type GoalsAndTasks = { goals: Goal[]; tasks: Task[] };
 
-export type Task = {
-  id: string;
-  title: string;
-  completed: boolean;
-  dueAt?: number | null;
-  xp?: number | null;
-};
-
-export type GoalsAndTasks = {
-  goals: Goal[];
-  tasks: Task[];
-};
-
-// =====================
-// Хелпер: отправить JSON как файл (multipart)
-// =====================
+/* ---------------------------------------------------------
+ *  helper: отправить объект как JSON-файл (multipart/form-data)
+ * --------------------------------------------------------- */
 async function postJsonFile(
-  endpoint: string,
+  url: string,
   data: unknown,
   filename: string,
   extraFields?: Record<string, string>
@@ -74,128 +62,104 @@ async function postJsonFile(
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const form = new FormData();
   form.append('file', blob, filename);
-
   if (extraFields) {
-    for (const [k, v] of Object.entries(extraFields)) {
-      form.append(k, v);
-    }
+    for (const [k, v] of Object.entries(extraFields)) form.append(k, v);
   }
+  const { data: resp } = await api.post(url, form);
+  return resp;
+}
 
-  const res = await api.post(endpoint, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+/* =========================================================
+ *  1. Старт игры — бек ждёт application/x-www-form-urlencoded
+ * ========================================================= */
+export async function startGame(userId?: string) {
+  const uid = userId ?? getUserIdFromMAX();
+  if (!uid) throw new Error('user_id не найден');
+
+  const body = new URLSearchParams({ user_id: uid });
+  const { data } = await api.post('/start-game', body, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
-  return res.data;
+  return data as { success: boolean; message: string; user_id: string };
 }
 
-// =====================
-// Start Game → JSON-файл
-// =====================
-export const startGame = async (userId?: string) => {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден (WebApp.initData/initDataUnsafe пуст)');
-
-  const payload = { user_id: uid, ts: Date.now() };
-  const filename = `start_game_${uid}_${Date.now()}.json`;
-  return postJsonFile('/api/start-game', payload, filename, { user_id: uid });
-};
-
-// =====================
-// Glow (свечение) → сохранить/получить
-// =====================
-export async function saveGlow(
-  characterId: string,
-  haloFrom: string,
-  haloTo: string,
-  userId?: string
-) {
+/* =========================================================
+ *  2. Свечение (Glow)
+ * ========================================================= */
+export async function saveGlow(charId: string, haloFrom: string, haloTo: string, userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
   if (!uid) throw new Error('user_id не найден');
-  const payload = { haloFrom, haloTo, character_id: characterId, user_id: uid, ts: Date.now() };
-  const filename = `glow_${uid}_${characterId}_${Date.now()}.json`;
-  return postJsonFile('/api/save-glow', payload, filename, {
-    user_id: uid,
-    character_id: characterId,
+
+  return postJsonFile(
+    '/save-glow',
+    { haloFrom, haloTo, ts: Date.now() },
+    `glow_${uid}_${charId}.json`,
+    { user_id: uid, character_id: charId }
+  );
+}
+
+export async function fetchGlow(charId: string, userId?: string) {
+  const uid = userId ?? getUserIdFromMAX();
+  if (!uid) throw new Error('user_id не найден');
+
+  const { data } = await api.get('/get-glow', {
+    params: { user_id: uid, character_id: charId },
   });
+  return data as { haloFrom?: string; haloTo?: string };
 }
 
-export async function fetchGlow(
-  characterId: string,
-  userId?: string
-): Promise<{ haloFrom: string; haloTo: string } | null> {
+/* =========================================================
+ *  3. Цели и задачи
+ * ========================================================= */
+export async function uploadGoalsAndTasksFile(charId: string, payload: GoalsAndTasks, userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
   if (!uid) throw new Error('user_id не найден');
 
-  try {
-    const res = await api.get('/api/get-glow', { params: { user_id: uid, character_id: characterId } });
-    if (res?.data?.haloFrom && res?.data?.haloTo) {
-      return { haloFrom: res.data.haloFrom, haloTo: res.data.haloTo };
-    }
-  } catch {}
-  return null;
+  return postJsonFile(
+    '/upload-goals-tasks',
+    { ...payload, ts: Date.now() },
+    `goals_tasks_${uid}_${charId}.json`,
+    { user_id: uid, character_id: charId }
+  );
 }
 
-// =====================
-// Goals & Tasks → файл / чтение
-// =====================
-export async function uploadGoalsAndTasksFile(
-  characterId: string,
-  data: GoalsAndTasks,
-  userId?: string
-) {
+export async function fetchGoalsAndTasks(charId: string, userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
   if (!uid) throw new Error('user_id не найден');
-  const filename = `goals_tasks_${uid}_${characterId}_${Date.now()}.json`;
-  return postJsonFile('/api/upload-goals-tasks', data, filename, {
-    user_id: uid,
-    character_id: characterId,
+
+  const { data } = await api.get('/get-goals-tasks', {
+    params: { user_id: uid, character_id: charId },
   });
+  return data as GoalsAndTasks;
 }
 
-export async function fetchGoalsAndTasks(
-  characterId: string,
-  userId?: string
-): Promise<GoalsAndTasks> {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-  try {
-    const res = await api.get('/api/get-goals-tasks', { params: { user_id: uid, character_id: characterId } });
-    return {
-      goals: Array.isArray(res?.data?.goals) ? res.data.goals : [],
-      tasks: Array.isArray(res?.data?.tasks) ? res.data.tasks : [],
-    };
-  } catch {
-    return { goals: [], tasks: [] };
-  }
-}
-
-// =====================
-// XP / Progress → файл / чтение
-// =====================
-export async function fetchProgress(
-  characterId: string,
-  userId?: string
-): Promise<{ xp: number }> {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-  try {
-    const res = await api.get('/api/get-progress', { params: { user_id: uid, character_id: characterId } });
-    return { xp: Number(res?.data?.xp ?? 0) };
-  } catch {
-    return { xp: 0 };
-  }
-}
+/* =========================================================
+ *  4. XP / Progress
+ * ========================================================= */
 export async function uploadProgressFile(
-  characterId: string,
-  data: { xp?: number; delta?: number },
+  charId: string,
+  body: { xp?: number; delta?: number },
   userId?: string
 ) {
   const uid = userId ?? getUserIdFromMAX();
   if (!uid) throw new Error('user_id не найден');
-  const filename = `progress_${uid}_${characterId}_${Date.now()}.json`;
-  return postJsonFile('/api/set-progress', { ...data, character_id: characterId, user_id: uid, ts: Date.now() }, filename, {
-    user_id: uid,
-    character_id: characterId,
+
+  return postJsonFile(
+    '/set-progress',
+    { ...body, ts: Date.now() },
+    `progress_${uid}_${charId}.json`,
+    { user_id: uid, character_id: charId }
+  );
+}
+
+export async function fetchProgress(charId: string, userId?: string) {
+  const uid = userId ?? getUserIdFromMAX();
+  if (!uid) throw new Error('user_id не найден');
+
+  const { data } = await api.get('/get-progress', {
+    params: { user_id: uid, character_id: charId },
   });
+  return data as { xp: number };
 }
 
 export default api;
