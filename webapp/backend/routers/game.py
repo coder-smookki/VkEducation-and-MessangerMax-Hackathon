@@ -1,27 +1,28 @@
-# webapp/backend/routers/start_game.py
-from fastapi import APIRouter, Depends, Form, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from database.session import database_init
-from database.repositories.user import UserAlchemyRepo
-from bot.core.models.user import User
+from fastapi import APIRouter
+from pydantic import BaseModel
 
-router = APIRouter(tags=["start-game"])
+router = APIRouter(tags=["game"])
 
-@router.post("/start-game")
-async def start_game(
-    user_id: str = Form(...),
-    session: AsyncSession = Depends(database_init)
-):
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id пуст")
 
-    repo = UserAlchemyRepo(session)
+# Входящая модель (ПОЧЕМУ У ТЕБЯ БЫЛА ОШИБКА 422)
+# Потому что FastAPI пытался распарсить её из query/form, а приходил JSON.
+class User(BaseModel):
+    user_id: int
 
-    existing = await repo.get(int(user_id))
-    if existing:
-        return {"success": True, "message": "Пользователь уже существует", "user_id": user_id}
 
-    new_user = User(id=None, user_id=int(user_id), username=None)
-    await repo.create(new_user)
+# Модель ответа
+class StartRes(BaseModel):
+    success: bool
+    message: str
 
-    return {"success": True, "message": "Пользователь создан", "user_id": user_id}
+
+# ---------- старт игры ----------
+@router.post("/start-game", response_model=StartRes)
+async def start_game(user: User):
+    print("Получен user_id:", user.user_id)
+
+    if not user.user_id:
+        return StartRes(success=False, message="user_id пуст")
+
+    # Здесь может быть создание игрока в БД
+    return StartRes(success=True, message="Пользователь зарегистрирован")
