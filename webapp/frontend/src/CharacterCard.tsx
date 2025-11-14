@@ -29,7 +29,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
      className={[
         'group relative w-full max-w-[520px] md:max-w-[560px] lg:max-w-[600px]',
         // компактнее высота карточки
-        'h-[360px] md:h-[500px] lg:h-[540px]',
+        'h-[460px] md:h-[500px] lg:h-[540px]',
         // grid вместо flex → без растягивания «между»
         'grid grid-rows-[1fr_auto_auto] items-center justify-items-center gap-2',
         'bg-transparent rounded-3xl overflow-hidden',
