@@ -7,6 +7,7 @@ import CharacterTasks from './CharacterTasks';
 import { useEffect } from 'react';
 import maxReady from './maxReady';
 import CharacterTimer from './CharacterTimer';
+import CharacterGoals from './CharacterGoal';
 
 export default function App() {
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/character/:id" element={<CharacterHome />} />
       <Route path="/character/:id/tasks" element={<CharacterTasks />} />
       <Route path="/character/:id/timer" element={<CharacterTimer />} />
+      <Route path="/character/:id/goals" element={<CharacterGoals />} />
  <Route path="*" element={<Navigate to="/" replace />} />    </Routes>
   );
 }

@@ -10,6 +10,7 @@ export default function StartScreen() {
     setLoading(true);
     try {
       const userId = getUserIdFromMAX(); 
+      // const userId = '123'
       if (!userId) {
         alert('Не удалось получить user_id из MAX');
         return;

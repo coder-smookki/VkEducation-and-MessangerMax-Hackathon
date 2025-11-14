@@ -54,11 +54,11 @@ services:
             start_period: 30s
 
     redis:
-        image: redis:7-alpine  # Используем стабильную версию 7
+        image: redis:7-alpine
         container_name: max-redis
         restart: unless-stopped
         ports:
-            - "6379:6379"  # Стандартный порт Redis
+            - "6379:6379"
         healthcheck:
             test: ["CMD", "redis-cli", "ping"]
             interval: 10s

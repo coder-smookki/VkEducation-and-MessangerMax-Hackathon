@@ -11,17 +11,17 @@ export type CardTheme = {
 
 export const themeByImage: Record<ImageKey, CardTheme> = {
   programmer: {
-    haloFrom: '#E3E0FF', haloTo: '#FFFFFF',
+    haloFrom: '#8478f6ff', haloTo: '#FFFFFF',
     btnFrom: '#6C63FF', btnTo: '#7B61FF',
     btnText: 'white',
   },
   business: {
-    haloFrom: '#F0F0F0', haloTo: '#FFFFFF', // ИЗМЕНИЛ на белые тона
+    haloFrom: '#ff6565ff', haloTo: '#FFFFFF', // ИЗМЕНИЛ на белые тона
     btnFrom: '#808080', btnTo: '#404040',   // Серые кнопки вместо оранжевых
     btnText: 'white',
   },
   fil: {
-    haloFrom: '#DFF6FF', haloTo: '#FFFFFF',
+    haloFrom: '#c9f879ff', haloTo: '#FFFFFF',
     btnFrom: '#22D3EE', btnTo: '#3B82F6',
     btnText: 'white',
   },
