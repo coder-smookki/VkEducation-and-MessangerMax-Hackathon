@@ -1,169 +1,50 @@
 // src/http.ts
 import axios from 'axios';
 
-/* ---------------------------------------------------------
- *  Базовый клиент (+ авто-параметр db_settings для всех запросов)
- * --------------------------------------------------------- */
-const DB_SETTINGS_VALUE = 'default'; // <-- при необходимости замени на нужное значение
-
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://127.0.0.1:5000', 
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// добавляем ?db_settings=... ко всем запросам, не перезаписывая существующие params
-api.interceptors.request.use((config) => {
-  config.params = { ...(config.params ?? {}), db_settings: DB_SETTINGS_VALUE };
-  return config;
-});
-
-/* ---------------------------------------------------------
- *  Telegram WebApp: получить user_id  (string | undefined)
- * --------------------------------------------------------- */
 function readInitDataString(): string {
-  const wa: any = (window as any).WebApp;
-  if (wa?.initData) return wa.initData as string;
-  return new URLSearchParams(location.search).get('init_data') ?? '';
+  const wa: any = (window as any)?.WebApp;
+  if (wa && typeof wa.initData === 'string' && wa.initData.length) return wa.initData;
+  const q = new URLSearchParams(location.search).get('init_data');
+  return q ?? '';
 }
 
-export function getUserIdFromMAX(): string | undefined {
-  const wa: any = (window as any).WebApp;
+export function getUserIdFromMAX(): string | null {
+  const wa: any = (window as any)?.WebApp;
 
+ 
   const idUnsafe = wa?.initDataUnsafe?.user?.id;
   if (idUnsafe != null) return String(idUnsafe);
 
-  const raw = readInitDataString();
-  if (!raw) return undefined;
+  const initData = readInitDataString();
+  if (!initData) return null;
 
-  const userStr = new URLSearchParams(raw).get('user');
-  if (!userStr) return undefined;
+  const params = new URLSearchParams(initData);
+  const userParam = params.get('user');
+  if (!userParam) return null;
 
-  const m = /"id"\s*:\s*(\d+)/.exec(userStr);
+  const m = /"id"\s*:\s*(\d+)/.exec(userParam);
   if (m) return m[1];
 
+ 
   try {
-    const obj = JSON.parse(userStr);
-    return obj?.id != null ? String(obj.id) : undefined;
+    const obj = JSON.parse(userParam);
+    return obj?.id != null ? String(obj.id) : null;
   } catch {
-    return undefined;
+    return null;
   }
 }
 
-/* ---------------------------------------------------------
- *  Типы
- * --------------------------------------------------------- */
-export type Goal  = { id: string; title: string; done: boolean; createdAt: number };
-export type Task  = { id: string; title: string; completed: boolean; dueAt?: number; xp?: number };
-export type GoalsAndTasks = { goals: Goal[]; tasks: Task[] };
-
-/* ---------------------------------------------------------
- *  helper: отправить объект как JSON-файл (multipart/form-data)
- * --------------------------------------------------------- */
-async function postJsonFile(
-  url: string,
-  data: unknown,
-  filename: string,
-  extraFields?: Record<string, string>
-) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const form = new FormData();
-  form.append('file', blob, filename);
-  if (extraFields) Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
-
-  const { data: resp } = await api.post(url, form);
-  return resp;
-}
-
-/* =========================================================
- *  1) Старт игры — бек ждёт application/x-www-form-urlencoded
- * ========================================================= */
-export async function startGame(userId?: string) {
+export const startGame = async (userId?: string) => {
   const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
+  if (!uid) throw new Error('user_id не найден (WebApp.initData/initDataUnsafe пуст)');
 
-  const body = new URLSearchParams({ user_id: uid });
-  const { data } = await api.post('/start-game', body, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  });
-  return data as { success: boolean; message: string; user_id: string };
-}
-
-/* =========================================================
- *  2) Свечение (Glow)
- * ========================================================= */
-export async function saveGlow(charId: string, haloFrom: string, haloTo: string, userId?: string) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  return postJsonFile(
-    '/save-glow',
-    { haloFrom, haloTo, ts: Date.now() },
-    `glow_${uid}_${charId}.json`,
-    { user_id: uid, character_id: charId }
-  );
-}
-
-export async function fetchGlow(charId: string, userId?: string) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  const { data } = await api.get('/get-glow', {
-    params: { user_id: uid, character_id: charId },
-  });
-  return data as { haloFrom?: string; haloTo?: string };
-}
-
-/* =========================================================
- *  3) Цели и задачи
- * ========================================================= */
-export async function uploadGoalsAndTasksFile(charId: string, payload: GoalsAndTasks, userId?: string) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  return postJsonFile(
-    '/upload-goals-tasks',
-    { ...payload, ts: Date.now() },
-    `goals_tasks_${uid}_${charId}.json`,
-    { user_id: uid, character_id: charId }
-  );
-}
-
-export async function fetchGoalsAndTasks(charId: string, userId?: string) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  const { data } = await api.get('/get-goals-tasks', {
-    params: { user_id: uid, character_id: charId },
-  });
-  return data as GoalsAndTasks;
-}
-
-/* =========================================================
- *  4) XP / Progress
- * ========================================================= */
-export async function uploadProgressFile(
-  charId: string,
-  body: { xp?: number; delta?: number },
-  userId?: string
-) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  return postJsonFile(
-    '/set-progress',
-    { ...body, ts: Date.now() },
-    `progress_${uid}_${charId}.json`,
-    { user_id: uid, character_id: charId }
-  );
-}
-
-export async function fetchProgress(charId: string, userId?: string) {
-  const uid = userId ?? getUserIdFromMAX();
-  if (!uid) throw new Error('user_id не найден');
-
-  const { data } = await api.get('/get-progress', {
-    params: { user_id: uid, character_id: charId },
-  });
-  return data as { xp: number };
-}
+  const response = await api.post('/api/start-game', { user_id: uid });
+  return response.data;
+};
 
 export default api;
