@@ -2,15 +2,22 @@
 import axios from 'axios';
 
 /* ---------------------------------------------------------
- *  Axios-клиент: базовый URL УЖЕ с /api
+ *  Базовый клиент (+ авто-параметр db_settings для всех запросов)
  * --------------------------------------------------------- */
+const DB_SETTINGS_VALUE = 'default'; // <-- при необходимости замени на нужное значение
+
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000/api',
+  baseURL: '/api',
+});
+
+// добавляем ?db_settings=... ко всем запросам, не перезаписывая существующие params
+api.interceptors.request.use((config) => {
+  config.params = { ...(config.params ?? {}), db_settings: DB_SETTINGS_VALUE };
+  return config;
 });
 
 /* ---------------------------------------------------------
- *  Telegram WebApp: получить user_id
- *  (возвращает string | undefined — это важное изменение)
+ *  Telegram WebApp: получить user_id  (string | undefined)
  * --------------------------------------------------------- */
 function readInitDataString(): string {
   const wa: any = (window as any).WebApp;
@@ -21,11 +28,9 @@ function readInitDataString(): string {
 export function getUserIdFromMAX(): string | undefined {
   const wa: any = (window as any).WebApp;
 
-  // 1) простой путь
   const idUnsafe = wa?.initDataUnsafe?.user?.id;
   if (idUnsafe != null) return String(idUnsafe);
 
-  // 2) парсим initData
   const raw = readInitDataString();
   if (!raw) return undefined;
 
@@ -62,15 +67,14 @@ async function postJsonFile(
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const form = new FormData();
   form.append('file', blob, filename);
-  if (extraFields) {
-    for (const [k, v] of Object.entries(extraFields)) form.append(k, v);
-  }
+  if (extraFields) Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
+
   const { data: resp } = await api.post(url, form);
   return resp;
 }
 
 /* =========================================================
- *  1. Старт игры — бек ждёт application/x-www-form-urlencoded
+ *  1) Старт игры — бек ждёт application/x-www-form-urlencoded
  * ========================================================= */
 export async function startGame(userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
@@ -84,7 +88,7 @@ export async function startGame(userId?: string) {
 }
 
 /* =========================================================
- *  2. Свечение (Glow)
+ *  2) Свечение (Glow)
  * ========================================================= */
 export async function saveGlow(charId: string, haloFrom: string, haloTo: string, userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
@@ -109,7 +113,7 @@ export async function fetchGlow(charId: string, userId?: string) {
 }
 
 /* =========================================================
- *  3. Цели и задачи
+ *  3) Цели и задачи
  * ========================================================= */
 export async function uploadGoalsAndTasksFile(charId: string, payload: GoalsAndTasks, userId?: string) {
   const uid = userId ?? getUserIdFromMAX();
@@ -134,7 +138,7 @@ export async function fetchGoalsAndTasks(charId: string, userId?: string) {
 }
 
 /* =========================================================
- *  4. XP / Progress
+ *  4) XP / Progress
  * ========================================================= */
 export async function uploadProgressFile(
   charId: string,
