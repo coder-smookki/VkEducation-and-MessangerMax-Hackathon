@@ -1,71 +1,79 @@
+version: '3.9'
+
 services:
-    bot:
-        image: max-bot-image
-        container_name: max-bot
-        restart: unless-stopped
-        build:
-            context: .
-            dockerfile: ./bot/Dockerfile
-        volumes:
-            - "./logs:/app/logs"
-        env_file: .env
-        environment:
-            PYTHONUNBUFFERED: 1
-            PYTHONDONTWRITEBYTECODE: 1
-            PYTHONPATH: /app:/app/bot
-        depends_on:
-            database:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
+  bot:
+    image: max-bot-image
+    container_name: max-bot
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./bot/Dockerfile
+    volumes:
+      - "./logs:/app/logs"
+      - "./bot:/app/bot"
+    env_file: .env
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONPATH: /app:/app/bot
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-    backend:
-        image: max-backend-image
-        container_name: max-backend
-        restart: unless-stopped
-        build:
-            context: .
-            dockerfile: ./webapp/backend/Dockerfile
-        env_file: .env
-        ports:
-            - "8000:8000"
-        depends_on:
-            database:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
+  backend:
+    image: max-backend-image
+    container_name: max-backend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./webapp/backend/Dockerfile
+    volumes:
+      - "./webapp/backend:/app/backend"
+      - "./bot:/app/bot"
+    env_file: .env
+    ports:
+      - "8001:8000"
+    environment:
+      PYTHONPATH: /app/bot:/app/backend
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-    database:
-        image: postgres:15.4-alpine
-        container_name: max-database
-        restart: unless-stopped
-        ports:
-            - "5432:5432"
-        environment:
-            POSTGRES_DB: MaxDB
-            POSTGRES_USER: MaxAdmin
-            POSTGRES_PASSWORD: sgrgrgs453rfvregt34w4gw43t34tfw34t
-        volumes:
-            - "postgres_data:/var/lib/postgresql/data"
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U MaxAdmin -d MaxDB"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 30s
+  database:
+    image: postgres:15.4-alpine
+    container_name: max-database
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: MaxDB
+      POSTGRES_USER: MaxAdmin
+      POSTGRES_PASSWORD: sgrgrgs453rfvregt34w4gw43t34tfw34t
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U MaxAdmin -d MaxDB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-    redis:
-        image: redis:7-alpine
-        container_name: max-redis
-        restart: unless-stopped
-        ports:
-            - "6379:6379"
-        healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-        command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+  redis:
+    image: redis:7-alpine
+    container_name: max-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
 
 volumes:
-    postgres_data:
+  postgres_data:
