@@ -34,7 +34,7 @@ services:
       - "./bot:/app/bot"
     env_file: .env
     ports:
-      - "8001:8000"
+      - "8000:8000"
     environment:
       PYTHONPATH: /app/bot:/app/backend
     depends_on:
@@ -74,6 +74,16 @@ services:
       timeout: 5s
       retries: 5
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+
+  frontend:
+    image: max-frontend-image
+    container_name: max-frontend
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./webapp/frontend/Dockerfile
+    ports:
+      - "5173:5173"
 
 volumes:
   postgres_data:
