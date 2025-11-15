@@ -7,10 +7,10 @@ import { imageMap, type ImageKey } from './images';
  * Ниже уже настроен бизнес → второй уровень businessAlt.
  */
 export const evolutionById: Partial<Record<string, ImageKey[]>> = {
-  business: ['businessAlt'],
-  // пример, если позже захочешь задать явный порядок:
-  // programmer: ['programmer', 'programmerAlt', 'programmer2'],
-  // filolog: ['fil', 'fil2', 'fil3'], // если id=filolog, а базовая картинка 'fil'
+  foot: ['f1', 'f2', 'f3', 'f4', 'f5'],
+  business: ['b1', 'b2', 'b3', 'b4', 'b5'],
+   programmer: ['p1', 'p2', 'p3', 'p4', 'p5'],
+  filolog: ['d5', 'd4', 'd3', 'd2', 'd1'],
 };
 
 /** ранжирование для авто-поиска: base → Alt → числовые суффиксы (2,3,4…) → прочее */

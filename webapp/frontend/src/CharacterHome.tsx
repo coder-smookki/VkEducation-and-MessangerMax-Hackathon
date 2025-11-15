@@ -172,26 +172,30 @@ export default function CharacterHome() {
 
           {/* Нижний ряд — 2 кнопки */}
           <div className="grid grid-cols-2 gap-3 max-w-[240px] mx-auto">
+               <Link
+  to={`/character/${c.id}/timer`}
+  className="rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center mx-auto text-center leading-tight"
+  style={{
+    background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
+    boxShadow: `0 8px 20px ${t.btnTo}80`,
+    width: "fit-content",
+    padding: "0 24px",
+  }}
+>
+ Pomodoro таймер
+</Link>
             <Link
-              to={`/character/${c.id}/timer`}
-              className="rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] grid place-items-center"
-              style={{
-                background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
-                boxShadow: `0 8px 20px ${t.btnTo}80`,
-              }}
-            >
-              Таймер
-            </Link>
-            <Link
-              to={`/character/${c.id}/stats`}
-              className="rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] grid place-items-center"
-              style={{
-                background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
-                boxShadow: `0 8px 20px ${t.btnTo}80`,
-              }}
-            >
-              Дополнительно
-            </Link>
+  to={`/character/${c.id}/calendar`}
+  className="rounded-[50px] h-12 shadow-lg active:scale-95 transition text-white text-[14px] flex items-center justify-center mx-auto leading-tight"
+  style={{
+    background: `linear-gradient(135deg, ${t.btnTo}, ${t.btnFrom})`,
+    boxShadow: `0 8px 20px ${t.btnTo}80`,
+    width: "fit-content",
+    padding: "0 24px",
+  }}
+>
+  Календарь дедлайнов
+</Link>
           </div>
         </div>
       </div>

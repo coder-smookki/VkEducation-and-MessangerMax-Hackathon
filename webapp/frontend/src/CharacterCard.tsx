@@ -61,7 +61,7 @@ export default function CharacterCard({ character, isActive, onSelect, onChoose 
 
       <div className="w-full text-center px-">
         <div className="text-[17px] font-semibold text-gray-900 mb-2">{character.name}</div>
-        <p className="text-gray-700 text-[12px] md:text-[11px] leading-snug">{character.story}</p>
+        <p className="text-[#909090] text-[12px] md:text-[11px] leading-snug">{character.story}</p>
       </div>
 
       <div className="mt-4">
